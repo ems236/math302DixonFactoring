@@ -1,3 +1,4 @@
+
 class PrimeSieve:
     def __init__(self, maxValue):
         self.maxValue = maxValue
@@ -27,6 +28,11 @@ class PrimeSieve:
                 selected_primes.append(i)
                 if len(selected_primes) == count:
                     return selected_primes
-        
         return None
-        
+    
+    def primes_at_or_below(self, max_val):
+        selected_primes = []
+        for i in range(2, min(self.maxValue, max) + 1):
+            if self.data[i]:
+                selected_primes.append(i)
+        return selected_primes
