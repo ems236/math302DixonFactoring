@@ -3,6 +3,7 @@ from prime_sieve import PrimeSieve
 import sys
 import math
 import random
+from itertools import combinations
 
 SELECTION_BOUND_CONSTANT = 0.1
 
@@ -97,7 +98,21 @@ def to_binary_exponent_vector(vector):
     return [exponent % 2 for exponent in vector]
 
 def subset_product_square_indeces(binary_residues):
-    pass
+    #this should use guassian elimination but it doesn't
+    #brute force is good too
+
+    for combination_size in range(2, len(binary_residues)):
+        for combination in combinations(range(0, len(binary_residues)), combination_size):
+            sum = [val for val in binary_residues[combination[0]]]
+            for combination_index in range(1, combination_size):
+                for item_index in range(0, len(binary_residues[0])):
+                    sum[item_index] = (sum[item_index] + binary_residues[combination[combination_index]][item_index]) % 2
+            if all(val == 0 for val in sum):
+                return combination
+    return None
+
+
+    
 
 def roots_for(source_list, residue_vectors, selected_indeces, primes):
     first_root = 1
