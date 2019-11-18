@@ -11,8 +11,15 @@ class SmoothResidueSieve:
                 for quadratic_zero in quadratic_zeros:
                     current_index = quadratic_zero
                     while current_index >= self.max_value:
-                        self.data[current_index] = self.data[current_index] // prime
+                        self.decrement_value(current_index, prime)
                         current_index = current_index + prime
+
+    def decrement_value(self, index, prime):
+        if self.data[index] % prime == 0:
+            self.data[index] = self.data[index] // prime
+
+    def is_qr_smooth(self, a):
+        return self.data[a] == 1
 
     @staticmethod
     def quadratic_zeros_mod_p(n, p):
