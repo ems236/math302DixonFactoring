@@ -1,7 +1,7 @@
 class SmoothResidueSieve:
-    def __init__(self, n, primes):
-        self.data = [(num**2 - n) for num in range(0, n + 1)]
-        self.max_value = n
+    def __init__(self, n, bound, primes):
+        self.data = [(num**2 - n) for num in range(0, bound + 1)]
+        self.max_value = bound
 
         for prime in primes:
             # solve x^2 - n == 0 mod p
