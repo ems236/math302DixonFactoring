@@ -27,10 +27,10 @@ class SmoothResidueSieve:
 
     
 def quadratic_zeros_mod_p(n, p):
-        #brute force because you assume p is small
-        solutions = []
-        for num in range(0, p):
-            if (num**2 - n) % p == 0:
-                solutions.append(num)
-        
-        return solutions
+    #brute force because you assume p is small
+    solutions = []
+    for num in range(0, p):
+        if (num**2 - n) % p == 0:
+            solutions.append(num)
+    
+    return solutions
