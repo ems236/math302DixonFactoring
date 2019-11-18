@@ -5,26 +5,39 @@ import math
 import random
 from itertools import combinations
 
-SELECTION_BOUND_CONSTANT = 0.45
+SMALL_EPSILON = 0.25
+LARGE_EPSILON = 0.45
 
 def factor(number):
-    #pick a value (B) for smoothness
-    smoothness, selection_bound = smoothness_parameters(number)
-    #find the primes up to B and check than none of them divide number
-    primegenerator = PrimeSieve(number)
-    if primegenerator.is_prime(number):
-        return False, 0, 0
-
-    primes = primegenerator.primes_at_or_below(smoothness)
-    has_factor, a, b = any_divide(number, primes)
-    if has_factor:
-        return True, a, b
-    
-    #find a case of x^2 == y^2 mod n
+    should_use_small_epsilon = True
+    should_increase_smoothness = False
+    current_smoothness = 0
     attempts = 0
-
     while attempts < 50: 
-        first_root, second_root = roots_of_congruent_squares(number, selection_bound, primes)
+        #pick a value (B) for smoothness
+        smoothness, lower_bound, upper_bound = smoothness_parameters(number, SMALL_EPSILON if should_use_small_epsilon else LARGE_EPSILON)
+        if should_increase_smoothness:
+            current_smoothness = current_smoothness + smoothness
+        else:
+            current_smoothness = smoothness
+        #find the primes up to B and check than none of them divide number
+        primegenerator = PrimeSieve(current_smoothness)
+        #if primegenerator.is_prime(number):
+        #    return False, 0, 0
+
+        primes = primegenerator.primes_at_or_below(current_smoothness)
+        has_factor, a, b = any_divide(number, primes)
+        if has_factor:
+            return True, a, b
+        
+        #find a case of x^2 == y^2 mod n
+        could_find_roots, first_root, second_root = roots_of_congruent_squares(number, lower_bound, upper_bound, primes)
+        if not could_find_roots:
+            if not should_use_small_epsilon:
+                should_increase_smoothness = True
+            should_use_small_epsilon = False
+            continue
+
         if first_root % number not in [second_root % number, (-1 * second_root) % number]:
             #find gcd(x-y, n)
             greater_root, lesser_root = max(first_root, second_root), min(second_root, first_root)
@@ -35,16 +48,18 @@ def factor(number):
         attempts = attempts + 1
     return False, 0, 0
 
-def smoothness_parameters(number):
+def smoothness_parameters(number, epsilon):
     logn = math.log(number)
     logsn = logn * math.log(logn)
     
-    constant_term = 0.5 + SELECTION_BOUND_CONSTANT
+    constant_term = 0.5 + epsilon
 
     smoothness_b = math.ceil(math.exp(constant_term * (logn ** 0.5)))
-    selection_boundary = math.ceil(number ** constant_term)
+    upper_bound = math.ceil(number ** constant_term)
 
-    return smoothness_b, selection_boundary
+    lower_bound = math.ceil(number ** 0.5)
+
+    return smoothness_b, lower_bound, upper_bound
 
 def any_divide(number, primes):
     for prime in primes:
@@ -52,38 +67,40 @@ def any_divide(number, primes):
             return True, prime, number // prime
     return False, 0, 0
 
-def roots_of_congruent_squares(number, selection_bound, primes):
+def roots_of_congruent_squares(number, lower_bound, upper_bound, primes):
     #generate pi(B) random smooth residues numbers in the correct range
-    smooth_residue_list, source_list, possible_primes = smooth_residues(number, selection_bound, primes)
+    could_find_smooths, smooth_residue_list, source_list, possible_primes = smooth_residues(number, lower_bound, upper_bound, primes)
+    if not could_find_smooths:
+        return False, 0, 0
+
     #do guassian elimination on the factor exponent vectors to get another square
     residue_vectors = [smooth_number_prime_exponents(residue, possible_primes) for residue in smooth_residue_list]
     binary_residue_vectors = [to_binary_exponent_vector(vector) for vector in residue_vectors]
     perfect_square_indeces = subset_product_square_indeces(binary_residue_vectors)
 
     #solve x^2 == y^2 mod n
-    return roots_for(source_list, residue_vectors, perfect_square_indeces, possible_primes)
+    first_root, second_root = roots_for(source_list, residue_vectors, perfect_square_indeces, possible_primes) 
+    return True, first_root, second_root
 
-def smooth_residues(number, selection_bound, primes):
-    smooth_sieve = SmoothResidueSieve(number, selection_bound, primes)
+def smooth_residues(number, lower_bound, upper_bound, primes):
+    smooth_sieve = SmoothResidueSieve(number, lower_bound, upper_bound, primes)
     smooth_residue_list = []    
     generator_list = []
-
-    lower_bound = math.ceil(number ** 0.5)
 
     found = 0
     iterations = 0
     while found < len(smooth_sieve.possible_primes) + 1:
-        test = random.randint(lower_bound, selection_bound)
+        test = random.randint(lower_bound, upper_bound)
         if test not in generator_list and smooth_sieve.is_qr_smooth(test):
             smooth_residue_list.append(test ** 2 - number)
             generator_list.append(test)
             found = found + 1
         
         if iterations > number:
-            raise RuntimeError("Couldn't find enough smooth numbers")
+            return False, [], [], []
         iterations = iterations + 1
 
-    return smooth_residue_list, generator_list, smooth_sieve.possible_primes
+    return True, smooth_residue_list, generator_list, smooth_sieve.possible_primes
 
 def exponent_divide(number, divisor):
     count = 0
