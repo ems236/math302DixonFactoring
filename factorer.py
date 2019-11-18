@@ -20,12 +20,14 @@ def factor(number):
     attempts = 0
     found = False
 
-    while attempts < 50 and not found: 
+    while attempts < 50: 
         first_root, second_root = roots_of_congruent_squares(number, selection_bound, primes)
         if first_root % number not in [second_root % number, (-1 * second_root) % number]:
-            found = True
             #find gcd(x-y, n)
-            gcd = math.gcd()
+            greater_root, lesser_root = max(first_root, second_root), min(second_root, first_root)
+            factor_guess = math.gcd(greater_root - lesser_root, number)
+            if factor_guess > 1:
+                return factor_guess, number // factor_guess
             #try again if it makes trivial factors
         attempts = attempts + 1
     return 1, number
