@@ -5,17 +5,20 @@ import math
 import random
 from itertools import combinations
 
-SELECTION_BOUND_CONSTANT = 0.1
+SELECTION_BOUND_CONSTANT = 0.45
 
 def factor(number):
     #pick a value (B) for smoothness
     smoothness, selection_bound = smoothness_parameters(number)
     #find the primes up to B and check than none of them divide number
-    primegenerator = PrimeSieve(smoothness)
+    primegenerator = PrimeSieve(number)
+    if primegenerator.is_prime(number):
+        return False, 0, 0
+
     primes = primegenerator.primes_at_or_below(smoothness)
     has_factor, a, b = any_divide(number, primes)
     if has_factor:
-        return a, b
+        return True, a, b
     
     #find a case of x^2 == y^2 mod n
     attempts = 0
@@ -27,10 +30,10 @@ def factor(number):
             greater_root, lesser_root = max(first_root, second_root), min(second_root, first_root)
             factor_guess = math.gcd(greater_root - lesser_root, number)
             if factor_guess > 1:
-                return factor_guess, number // factor_guess
+                return True, factor_guess, number // factor_guess
             #try again if it makes trivial factors
         attempts = attempts + 1
-    return 1, number
+    return False, 0, 0
 
 def smoothness_parameters(number):
     logn = math.log(number)
@@ -139,8 +142,11 @@ if __name__ == "__main__":
             print(f"Please supply a number as the first argument")
 
         if num > 0:
-            x, y = factor(num)
-            print(f"{num} can be factored as {x} * {y}")
+            couldFactor, x, y = factor(num)
+            if couldFactor:
+                print(f"{num} can be factored as {x} * {y}")
+            else:
+                print(f"Could not factor {num}.  It is most likely prime")
         else:
             print(f"{num} is negative and will not be factored.")
     else:
