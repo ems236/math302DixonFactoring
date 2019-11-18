@@ -32,7 +32,7 @@ class PrimeSieve:
     
     def primes_at_or_below(self, max_val):
         selected_primes = []
-        for i in range(2, min(self.maxValue, max) + 1):
+        for i in range(2, min(self.maxValue, max_val) + 1):
             if self.data[i]:
                 selected_primes.append(i)
         return selected_primes

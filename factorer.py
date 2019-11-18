@@ -18,7 +18,6 @@ def factor(number):
     
     #find a case of x^2 == y^2 mod n
     attempts = 0
-    found = False
 
     while attempts < 50: 
         first_root, second_root = roots_of_congruent_squares(number, selection_bound, primes)
@@ -51,14 +50,14 @@ def any_divide(number, primes):
 
 def roots_of_congruent_squares(number, selection_bound, primes):
     #generate pi(B) random smooth residues numbers in the correct range
-    smooth_residue_list, source_list = smooth_residues(number, selection_bound, primes)
+    smooth_residue_list, source_list, possible_primes = smooth_residues(number, selection_bound, primes)
     #do guassian elimination on the factor exponent vectors to get another square
-    residue_vectors = [smooth_number_prime_exponents(residue, primes) for residue in smooth_residue_list]
+    residue_vectors = [smooth_number_prime_exponents(residue, possible_primes) for residue in smooth_residue_list]
     binary_residue_vectors = [to_binary_exponent_vector(vector) for vector in residue_vectors]
     perfect_square_indeces = subset_product_square_indeces(binary_residue_vectors)
 
     #solve x^2 == y^2 mod n
-    return roots_for(source_list, residue_vectors, perfect_square_indeces)
+    return roots_for(source_list, residue_vectors, perfect_square_indeces, possible_primes)
 
 def smooth_residues(number, selection_bound, primes):
     smooth_sieve = SmoothResidueSieve(number, selection_bound, primes)
@@ -69,18 +68,18 @@ def smooth_residues(number, selection_bound, primes):
 
     found = 0
     iterations = 0
-    while found < len(primes) + 1:
+    while found < len(smooth_sieve.possible_primes) + 1:
         test = random.randint(lower_bound, selection_bound)
-        if smooth_sieve.is_qr_smooth(test):
+        if test not in generator_list and smooth_sieve.is_qr_smooth(test):
             smooth_residue_list.append(test ** 2 - number)
             generator_list.append(test)
             found = found + 1
         
-        if iterations > 100 * number:
+        if iterations > number:
             raise RuntimeError("Couldn't find enough smooth numbers")
         iterations = iterations + 1
 
-    return smooth_residue_list, generator_list
+    return smooth_residue_list, generator_list, smooth_sieve.possible_primes
 
 def exponent_divide(number, divisor):
     count = 0
@@ -117,16 +116,17 @@ def roots_for(source_list, residue_vectors, selected_indeces, primes):
 
 
 if __name__ == "__main__":
-    if sys.argv > 1:
+    if len(sys.argv) > 1:
         num = 0
         try:
             num = int(sys.argv[1])
-            if num > 0:
-                x, y = factor(num)
-                print(f"{num} can be factored as {x} * {y}")
-            else:
-                print(f"{num} is negative and will not be factored.")
         except:
             print(f"Please supply a number as the first argument")
+
+        if num > 0:
+            x, y = factor(num)
+            print(f"{num} can be factored as {x} * {y}")
+        else:
+            print(f"{num} is negative and will not be factored.")
     else:
         print(f"Please supply a number as the first argument")

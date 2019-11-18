@@ -2,11 +2,13 @@ class SmoothResidueSieve:
     def __init__(self, n, bound, primes):
         self.data = [(num**2 - n) for num in range(0, bound + 1)]
         self.max_value = bound
+        self.possible_primes = []
 
         for prime in primes:
             # solve x^2 - n == 0 mod p
             quadratic_zeros = quadratic_zeros_mod_p(n, prime)
             if quadratic_zeros:
+                self.possible_primes.append(prime)
                 for quadratic_zero in quadratic_zeros:
                     self.sieve_for_zero(quadratic_zero, prime)
 
@@ -17,10 +19,10 @@ class SmoothResidueSieve:
             current_index = current_index + prime
 
     def decrement_value(self, index, prime):
-        print(f"decrementing {index} for prime {prime}, value is {self.data[index]}")
+        #print(f"decrementing {index} for prime {prime}, value is {self.data[index]}")
         while self.data[index] > 0 and self.data[index] % prime == 0 :
             self.data[index] = self.data[index] // prime
-        print(f"value is now {self.data[index]} \n")
+        #print(f"value is now {self.data[index]} \n")
 
     def is_qr_smooth(self, a):
         return self.data[a] == 1
