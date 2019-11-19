@@ -31,11 +31,9 @@ class SmoothResidueSieve:
             current_number = current_number + prime
 
     def decrement_value(self, number, prime):
-        #print(f"decrementing {index} for prime {prime}, value is {self.data[index]}")
         index = number - self.min_value
-        while self.data[index] > 0 and self.data[index] % prime == 0 :
+        while self.data[index] % prime == 0 :
             self.data[index] = self.data[index] // prime
-        #print(f"value is now {self.data[index]} \n")
 
     def is_qr_smooth(self, a):
         return self.data[a - self.min_value] == 1

@@ -54,9 +54,8 @@ def smoothness_parameters(number, epsilon):
     
     constant_term = 0.5 + epsilon
 
-    smoothness_b = math.ceil(math.exp(constant_term * (logn ** 0.5)))
+    smoothness_b = math.ceil(math.exp(constant_term * (logsn ** 0.5)))
     upper_bound = math.ceil(number ** constant_term)
-
     lower_bound = math.ceil(number ** 0.5)
 
     return smoothness_b, lower_bound, upper_bound
