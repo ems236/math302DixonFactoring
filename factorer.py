@@ -83,7 +83,7 @@ def roots_of_congruent_squares(number, lower_bound, upper_bound, primes):
     if not could_find_smooths:
         return False, 0, 0
 
-    print("Found enough smooths")
+    #print("Found enough smooths")
 
     #do guassian elimination on the factor exponent vectors to get another square
     residue_vectors = [smooth_number_prime_exponents(residue, possible_primes) for residue in smooth_residue_list]
@@ -96,6 +96,7 @@ def roots_of_congruent_squares(number, lower_bound, upper_bound, primes):
 
 def smooth_residues(number, lower_bound, upper_bound, primes):
     smooth_sieve = SmoothResidueSieve(number, lower_bound, upper_bound, primes)
+    #print("generated smooth sieve")
     smooth_residue_list = []    
     generator_list = []
 
