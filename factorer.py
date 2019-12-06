@@ -8,7 +8,18 @@ from itertools import combinations
 SMALL_EPSILON = 0.25
 LARGE_EPSILON = 0.45
 
-def factor(number):
+def is_perfect_square(number):
+    root = number ** 0.5
+    return (round(root) == root, root)
+
+def factor(number, prime_sieve):
+    is_square, root = is_perfect_square(number)
+    if is_square:
+        return True, root, root
+
+    if prime_sieve.is_prime(number):
+        return False, number, 1
+
     should_use_small_epsilon = True
     should_increase_smoothness = False
     current_smoothness = 0
@@ -21,11 +32,11 @@ def factor(number):
         else:
             current_smoothness = smoothness
         #find the primes up to B and check than none of them divide number
-        primegenerator = PrimeSieve(current_smoothness)
+        #primegenerator = PrimeSieve(current_smoothness)
         #if primegenerator.is_prime(number):
         #    return False, 0, 0
 
-        primes = primegenerator.primes_at_or_below(current_smoothness)
+        primes = prime_sieve.primes_at_or_below(current_smoothness)
         has_factor, a, b = any_divide(number, primes)
         if has_factor:
             return True, a, b
@@ -71,6 +82,8 @@ def roots_of_congruent_squares(number, lower_bound, upper_bound, primes):
     could_find_smooths, smooth_residue_list, source_list, possible_primes = smooth_residues(number, lower_bound, upper_bound, primes)
     if not could_find_smooths:
         return False, 0, 0
+
+    print("Found enough smooths")
 
     #do guassian elimination on the factor exponent vectors to get another square
     residue_vectors = [smooth_number_prime_exponents(residue, possible_primes) for residue in smooth_residue_list]
@@ -130,9 +143,6 @@ def subset_product_square_indeces(binary_residues):
                 return combination
     return None
 
-
-    
-
 def roots_for(source_list, residue_vectors, selected_indeces, primes):
     first_root = 1
     second_root = 1
@@ -148,6 +158,12 @@ def roots_for(source_list, residue_vectors, selected_indeces, primes):
     
     return first_root, second_root
 
+def prime_factors(num, prime_tester):
+    couldFactor, x, y = factor(num, prime_tester)
+    if couldFactor:
+        return prime_factors(x, prime_tester) + prime_factors(y, prime_tester)
+    else:
+        return [num]
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -158,11 +174,11 @@ if __name__ == "__main__":
             print(f"Please supply a number as the first argument")
 
         if num > 0:
-            couldFactor, x, y = factor(num)
-            if couldFactor:
-                print(f"{num} can be factored as {x} * {y}")
-            else:
-                print(f"Could not factor {num}.  It is most likely prime")
+            prime_tester = PrimeSieve(10000000)
+            print(f"Generated primes below 10000000")
+
+            prime_factors = prime_factors(num, prime_tester)
+            print(f"{prime_factors}")
         else:
             print(f"{num} is negative and will not be factored.")
     else:
